@@ -19,9 +19,19 @@
   <ItemGroup>
     <None Remove="Data\" />
     <None Remove="Views\Category\" />
+    <None Remove="Views\Product\" />
+    <None Remove="Models\ViewModels\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Views\Category\" />
+    <Folder Include="Views\Product\" />
+    <Folder Include="Models\ViewModels\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Migrations\20230709204517_AddCategoryTableToDb.Designer.cs" />
+    <Compile Remove="Migrations\20230709204517_AddCategoryTableToDb.cs" />
+    <Compile Remove="Migrations\20230811182426_AddProductTableToDb.Designer.cs" />
+    <Compile Remove="Migrations\20230811182426_AddProductTableToDb.cs" />
   </ItemGroup>
 </Project>

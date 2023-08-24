@@ -11,9 +11,11 @@ namespace BulkyWeb.Controllers
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public ProductController(ApplicationDbContext db)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public ProductController(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: /<controller>/
@@ -23,7 +25,7 @@ namespace BulkyWeb.Controllers
             return View(objProductList);
         }
 
-        public IActionResult Create()
+        public IActionResult Upsert(int? id)
         {
             ProductViewModel producVewModel = new()
             {
@@ -34,14 +36,36 @@ namespace BulkyWeb.Controllers
                 }),
                 Product = new Product()
             };
-            return View(producVewModel);
+
+            if (id == null || id == 0) {
+                return View(producVewModel);
+            }
+            else {
+                producVewModel.Product = _db.Products.Single(u => u.Id==id);
+                return View(producVewModel);
+            }
+            
         }
 
         [HttpPost]
-        public IActionResult Create(ProductViewModel productvm)
+        public IActionResult Upsert(ProductViewModel productvm, IFormFile? file)
         {
+            string wwwRootPath = _webHostEnvironment.WebRootPath;
             if(ModelState.IsValid)
             {
+                if(file != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    string productPath = Path.Combine(wwwRootPath, @"images/product");
+
+                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+
+                    productvm.Product.ImageUrl = @"/images/product/" + fileName;
+
+                }
                 _db.Products.Add(productvm.Product);
                 _db.SaveChanges();
                 TempData["success"] = "Product created successfully.";
@@ -61,34 +85,6 @@ namespace BulkyWeb.Controllers
            
         }
 
-        public IActionResult Edit(int? id)
-        {
-            if(id == null || id == 0)
-            {
-                ModelState.AddModelError("", "Product not found.");
-            }
-
-            Product? productFromDb = _db.Products.Find(id);
-            if(productFromDb == null)
-            {
-                ModelState.AddModelError("", "Product not found.");
-            }
-            return View(productFromDb);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(Product obj)
-        {
-            if (ModelState.IsValid)
-            {
-                _db.Products.Update(obj);
-                _db.SaveChanges();
-                TempData["success"] = "Product updated successfully.";
-                return RedirectToAction("Index", "Product");
-            }
-
-            return View();
-        }
 
         public IActionResult Delete(int? id)
         {
